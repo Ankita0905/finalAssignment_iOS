@@ -78,16 +78,16 @@ class Singleton: NSObject
         
         let p10 = Product(id: 130, name: "Mobile", desc: "Iphone 8", price: 2000.0)
         
-        AddProduct(product: p1)
-        AddProduct(product: p2)
-        AddProduct(product: p3)
-        AddProduct(product: p4)
-        AddProduct(product: p5)
-        AddProduct(product: p6)
-        AddProduct(product: p7)
-        AddProduct(product: p8)
-        AddProduct(product: p9)
-        AddProduct(product: p10)
+               productArray.append(p1)
+               productArray.append(p2)
+               productArray.append(p3)
+               productArray.append(p4)
+               productArray.append(p5)
+               productArray.append(p6)
+               productArray.append(p7)
+               productArray.append(p8)
+               productArray.append(p9)
+               productArray.append(p10)
    
 //    func printdata()
 //    {
