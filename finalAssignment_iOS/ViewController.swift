@@ -2,135 +2,256 @@
 //  ViewController.swift
 //  finalAssignment_iOS
 //
-//  Created by Ankita Jain on 2020-01-24.
+//  Created by Ankita Jain on 2020-01-25.
 //  Copyright © 2020 Ankita Jain. All rights reserved.
 //
 
 import UIKit
 import CoreData
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate{
     
-    var products: [Product]?
     
-    var index1: Int = 1
-    var name = " ";
-    var id =  0;
-    var desc = " ";
-    var price = 0.0 ;
-   // var id1 = " "
+   var productsArray : [Product]?
+    var productArray : [Product]?
     
-    @IBOutlet var textFields: [UITextField]!
+     var isSearch = false
+     var searchArray : [Product]?
     
+    @IBOutlet weak var searchBar: UISearchBar!
+    
+    @IBOutlet weak var tableProducts: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        
-        textFields[0].text = "\(id)"
-        textFields[1].text = name
-        textFields[2].text = desc
-        textFields[3].text = "\(price)"
-        
-        
-       
-    }
-    
-    func setIndex(index: Int,data: Int){
-        print(data);
-        id = data
-        products = [Product]()
-        
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Products")
-        
-        do {
-            let results = try managedContext.fetch(fetchRequest)
-            if results is [NSManagedObject]{
-                for result in (results as! [NSManagedObject]) {
-                    let pname = result.value(forKey: "name") as! String
-                    let pid = result.value(forKey: "id") as! Int16
-                    let pdesc = result.value(forKey: "desc") as! String
-                    
-                    let pprice = result.value(forKey: "price") as! Float
-                    
-                    if (id == data)
-                    {
-                        print(id)
-                        products?.append(Product(id: Int16(id), name: name, desc: desc, price: Float(price)))
-                        name = pname
-                        id = Int(pid)
-                        desc = pdesc
-                        price = Double(pprice)
-             
-                    }
-                    
-                    
-                }
-            }
-        } catch  {
-            print(error)
+        tableProducts.delegate = self
+        tableProducts.dataSource = self
+        searchBar.delegate = self
+      
+        let defaults = UserDefaults.standard
+        productArray?.removeAll()
+        productsArray?.removeAll()
+        defaults.set(false, forKey: "bool")
+        if defaults.bool(forKey: "bool")
+        {
+            productsArray?.removeAll()
+            productArray?.removeAll()
+            self.clearCoreData()
+            self.loadCoreData()
+                         
+                   tableProducts.reloadData()
+            
         }
-        
-    }
-    
-    func loadCoreData(){
-        products = [Product]()
-       saveCoreData()
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-       
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Products")
-        
-        do{
-            let results = try managedContext.fetch(fetchRequest)
-            if results is [NSManagedObject]{
-                for result in results as! [NSManagedObject]{
-                    let name = result.value(forKey: "name") as! String
-                    let desc = result.value(forKey: "desc") as! String
-                    let id = result.value(forKey: "id") as! Int
-                    let price = result.value(forKey: "price") as! Int
-                    products?.append(Product(id: Int16(id), name: name, desc: desc, price: Float(price)))
-                }
-            }
-        }catch{
-            print(error)
-        }
-        
-    }
-    
-    func saveCoreData(){
-    //    clearCoreData()
-             let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        else
+        {
+            let getdata = Singleton.getInstance()
+                          getdata.createProduct()
+                        productsArray = getdata.returnProductArray()
+         
+                      self.saveCoreData(array: productsArray!)
+            productArray?.removeAll()
 
-             let managedContext = appDelegate.persistentContainer.viewContext
-             
-             for  product in products!
-             {
-                 let productEntity = NSEntityDescription.insertNewObject(forEntityName: "Products", into: managedContext)
-                productEntity.setValue(product.name, forKey: "name")
-               // print(product.Product_Name)
-                productEntity.setValue(product.desc, forKey: "desc")
-                productEntity.setValue(product.id, forKey: "id")
-                productEntity.setValue(product.price, forKey: "price")
-                 
-                 // save context
-                 do{
-                     try managedContext.save()
-                 }catch{
-                     print(error)
-                 }
-             }
-         }
+            self.loadCoreData()
+                        
+                  tableProducts.reloadData()
+            defaults.set(true, forKey: "bool")
+            
+        }
+        // Do any additional setup after loading the view.
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        productArray?.removeAll()
+        productsArray?.removeAll()
+        loadCoreData()
+        tableProducts.reloadData()
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 63
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isSearch
+        {
+        return searchArray!.count
+        }
+        else
+        {
+            return productArray!.count
+
+        }
+       }
+       
+       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "productcell", for: indexPath) as! ProductTableViewCell
+        
+        if isSearch
+        {
+        let currproduct = searchArray![indexPath.row]
+        cell.lbl1.text = currproduct.name
+        cell.lbl2.text = String(" \(currproduct.price)")
+            
+        }
+        else
+        {
+            let currproduct = productArray![indexPath.row]
+            cell.lbl1.text = currproduct.name
+            cell.lbl2.text = String(" \(currproduct.price)")
+        }
+        
+    
+        
+                  
+                   return cell
+           
+       }
+ 
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let sb = UIStoryboard(name: "Main", bundle: nil)
+        
+              let newVC = sb.instantiateViewController(identifier: "detailVC") as! DetailsViewController
+        if isSearch{
+            
+            let currtask = searchArray![indexPath.row]
+            newVC.product = currtask
+            
+        }
+        else{
+            let currtask = productArray![indexPath.row]
+            newVC.product = currtask
+            
+        }
+        
+              
+              navigationController?.pushViewController(newVC, animated: true)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
+       {
+        let filtered = productArray!.filter { $0.name.lowercased().contains(searchText.lowercased())}
+                   
+           if filtered.count>0
+           {
+            //tasks = []
+               searchArray = filtered;
+               isSearch = true;
+           }
+           else
+           {
+            searchArray = self.productArray
+               isSearch = false;
+           }
+           self.tableProducts.reloadData();
+       }
+       
+       func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool
+       {
+           return true;
+       }
     
     
+    
+    
+    
+    
+    func saveCoreData(array : [Product]){
+         
+         clearCoreData()
+         
+         // create an instance of app delegate
+         
+         let appDelegate = UIApplication.shared.delegate as! AppDelegate
+         
+          let context = appDelegate.persistentContainer.viewContext
     
   
-    
-    
+   
+          
+                 
+         for product in array{
+             
+             let taskEntity = NSEntityDescription.insertNewObject(forEntityName: "Products", into: context)
+            taskEntity.setValue(product.id, forKey: "id")
+            taskEntity.setValue(product.name, forKey: "name")
+            taskEntity.setValue(product.desc, forKey: "desc")
+             //let timestamp = Date().currentTimeMillis();
+            taskEntity.setValue(product.price, forKey: "price")
+             
+             do
+             {
+                  try context.save()
+                 
+             }catch
+             {
+                 print(error)
+             }
 
+         }
+     }
+     
+     func loadCoreData()
+     {
+         
+        //clearCoreData()
+         productArray = [Product]()
+
+         let appDelegate = UIApplication.shared.delegate as! AppDelegate
+               
+                let context = appDelegate.persistentContainer.viewContext
+         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Products")
+         do{
+             let results = try context.fetch(fetchRequest)
+             if results is [NSManagedObject]
+             {
+                 for result in results as! [NSManagedObject]
+                 {
+                     let id = result.value(forKey: "id") as! Int16
+                     let name = result.value(forKey: "name") as! String
+                     let desc = result.value(forKey: "desc") as! String
+                     let price = result.value(forKey: "price") as! Float
+                     
+                    productArray?.append(Product(id: id, name: name, desc: desc, price: price))
+                     
+
+                 }
+             }
+         } catch{
+             print(error)
+         }
+                       
+         
+     }
+    
+    
+     
+     func clearCoreData ()
+     {
+
+                let appDelegate = UIApplication.shared.delegate as! AppDelegate
+                      
+                       let context = appDelegate.persistentContainer.viewContext
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Products")
+         fetchRequest.returnsObjectsAsFaults = false
+         do{
+             let results = try context.fetch(fetchRequest)
+             
+             for managedObjects in results{
+                 if let managedObjectsData = managedObjects as? NSManagedObject
+                 {
+                     context.delete(managedObjectsData)
+                 }
+             
+             }
+         }catch{
+             print(error)
+         }
+     
+     }
 
 }
 
