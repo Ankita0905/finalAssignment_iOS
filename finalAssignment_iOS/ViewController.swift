@@ -49,7 +49,7 @@ class ViewController: UIViewController {
             let results = try managedContext.fetch(fetchRequest)
             if results is [NSManagedObject]{
                 for result in (results as! [NSManagedObject]) {
-                    var pname = result.value(forKey: "name") as! String
+                    let pname = result.value(forKey: "name") as! String
                     let pid = result.value(forKey: "id") as! Int16
                     let pdesc = result.value(forKey: "desc") as! String
                     
