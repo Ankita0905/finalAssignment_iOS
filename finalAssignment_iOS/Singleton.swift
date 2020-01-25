@@ -32,29 +32,21 @@ class Singleton: NSObject
 //        self.AddCustomer(customer: temp)
 //    }
     
-    func returnProductArray() -> [Product]
-{
-    return productArray
-    }
-    func returnProductObject() -> Product?
-    {
-        for product in productArray
-        {
-           return product
-        }
-        return nil
-        
-    }
     
-    func returnCount() -> Int
-    {
-        return productArray.count
-    }
+   
+//    func returnProductObject() -> Product?
+//    {
+//        for product in productArray
+//        {
+//           return product
+//        }
+//        return nil
+//
+//    }
     
-    func AddProduct(product: Product)
-       {
-           productArray.append(product)
-       }
+  
+    
+   
     
     func createProduct()
     {
@@ -88,6 +80,12 @@ class Singleton: NSObject
                productArray.append(p8)
                productArray.append(p9)
                productArray.append(p10)
+        
+    }
+         func returnProductArray() -> [Product]
+        {
+            return productArray
+            }
    
 //    func printdata()
 //    {
@@ -96,6 +94,6 @@ class Singleton: NSObject
 //            print(i.customerFName!)
 //        }
 //    }
-    }
+    
 
 }
